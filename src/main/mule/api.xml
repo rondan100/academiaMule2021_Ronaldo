@@ -1,10 +1,17 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<mule xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:apikit="http://www.mulesoft.org/schema/mule/mule-apikit" xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd http://www.mulesoft.org/schema/mule/mule-apikit http://www.mulesoft.org/schema/mule/mule-apikit/current/mule-apikit.xsd ">
+<mule xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:apikit="http://www.mulesoft.org/schema/mule/mule-apikit" xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd http://www.mulesoft.org/schema/mule/mule-apikit http://www.mulesoft.org/schema/mule/mule-apikit/current/mule-apikit.xsd ">
     <http:listener-config name="api-httpListenerConfig">
         <http:listener-connection host="0.0.0.0" port="8081" />
     </http:listener-config>
     <apikit:config name="api-config" api="resource::3283bb72-72b3-4e10-a776-1742d9424be0:ronaldo-academia-completo-raml:1.0.0:raml:zip:api.raml" outboundHeadersMapName="outboundHeaders" httpStatusVarName="httpStatus" />
-    <flow name="api-main">
+    <http:request-config name="HTTP_Request_configuration" doc:name="HTTP Request configuration" doc:id="63a33426-950e-45bc-af58-4d2e49a29c91" >
+		<http:request-connection host="academia-system-api.us-e1.cloudhub.io" />
+		<http:default-headers >
+			<http:default-header key="client_id" value="22424242" />
+			<http:default-header key="client_secret" value="123124214" />
+		</http:default-headers>
+	</http:request-config>
+	<flow name="api-main">
         <http:listener config-ref="api-httpListenerConfig" path="/api/*">
             <http:response statusCode="#[vars.httpStatus default 200]">
                 <http:headers>#[vars.outboundHeaders default {}]</http:headers>
@@ -137,70 +144,7 @@ output application/json
         </ee:transform>
     </flow>
     <flow name="get:\query\allClothes:api-config">
-        <ee:transform xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
-            <ee:message>
-                <ee:set-payload><![CDATA[%dw 2.0
-output application/json
----
-[
-  {
-    id: "2f4d2fbb00",
-    name: "Camisa do Hulk",
-    marca: "Hering",
-    cor: "Verde",
-    tamanho: "M",
-    dataEfetivado: "15/12/2020",
-    quantidade: 500,
-    preco: 22.5,
-    outrasCores: true
-  }, 
-  {
-    id: "48b793f3d5",
-    name: "Camisa do Capitão America",
-    marca: "Calvin Klein",
-    cor: "Vermelho",
-    tamanho: "P",
-    dataEfetivado: "15/12/2020",
-    quantidade: 200,
-    preco: 23.5,
-    outrasCores: true
-  }, 
-  {
-    id: "bad5536cdf",
-    name: "Camisa do Homem de Ferro",
-    marca: "Calvin Klein",
-    cor: "Amarela",
-    tamanho: "G",
-    dataEfetivado: "15/12/2020",
-    quantidade: 200,
-    preco: 33.5,
-    outrasCores: false
-  }, 
-  {
-    id: "72ad1a7cb463",
-    name: "Camisa do Batman",
-    marca: "DC",
-    cor: "Preta",
-    tamanho: "XG",
-    dataEfetivado: "15/12/2020",
-    quantidade: 1000,
-    preco: 43.5,
-    outrasCores: false
-  }, 
-  {
-    id: "7d8b0707e3db",
-    name: "Camisa da Mulher Maravilha",
-    marca: "DC",
-    cor: "Azul",
-    tamanho: "GG",
-    dataEfetivado: "15/12/2020",
-    quantidade: 200,
-    preco: 63.5,
-    outrasCores: false
-  }
-]]]></ee:set-payload>
-            </ee:message>
-        </ee:transform>
+        <http:request method="GET" doc:name="Request All Clothes" doc:id="c1cac405-7312-45bf-90d7-73c1562debb6" config-ref="HTTP_Request_configuration" path="/query/allClothes" />
     </flow>
     <flow name="get:\query\clothes:api-config">
         <ee:transform xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
@@ -223,18 +167,7 @@ output application/json
         </ee:transform>
     </flow>
     <flow name="get:\status:api-config">
-        <ee:transform xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
-            <ee:message>
-                <ee:set-payload><![CDATA[%dw 2.0
-output application/json
----
-{
-  title: "Mulesoft Academia 2021",
-  version: "1.0",
-  requestTime: "2020-05-26T19:11:48.455Z"
-}]]></ee:set-payload>
-            </ee:message>
-        </ee:transform>
+		<logger level="INFO" doc:name="Logger" doc:id="5ea8c8b0-bff4-45f9-9a9c-1c226b1eb42d" />
     </flow>
     <flow name="post:\create\clothes:application\json:api-config">
         <ee:transform xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
