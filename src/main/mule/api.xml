@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<mule xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:apikit="http://www.mulesoft.org/schema/mule/mule-apikit" xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd http://www.mulesoft.org/schema/mule/mule-apikit http://www.mulesoft.org/schema/mule/mule-apikit/current/mule-apikit.xsd ">
+<mule xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:apikit="http://www.mulesoft.org/schema/mule/mule-apikit" xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd http://www.mulesoft.org/schema/mule/mule-apikit http://www.mulesoft.org/schema/mule/mule-apikit/current/mule-apikit.xsd 
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
     <http:listener-config name="api-httpListenerConfig">
         <http:listener-connection host="0.0.0.0" port="8081" />
     </http:listener-config>
@@ -163,9 +164,29 @@ output application/json
     <flow name="get:\query\allClothes:api-config">
         <http:request method="GET" doc:name="Request All Clothes" doc:id="c1cac405-7312-45bf-90d7-73c1562debb6" config-ref="HTTP_Request_configuration" path="/query/allClothes" />
     </flow>
-    <flow name="get:\query\clothes:api-config">
-        <http:request method="GET" doc:name="Request Clothes" doc:id="febc46fd-8247-4271-b01b-2f1dd980ae6c" config-ref="HTTP_Request_configuration1" path="/query/clothes">
+    <sub-flow name="choiceTestSubFlow" doc:id="4bd4da4c-263e-4f89-ae8e-ea7f35c3e6f5" >
+		<choice doc:name="Choice" doc:id="ea2dc616-7a9d-46fc-9f78-0e25d508f0e2" >
+			<when expression='#[vars.nome != ""]'>
+				<http:request method="GET" doc:name="Request Clothes" doc:id="febc46fd-8247-4271-b01b-2f1dd980ae6c" config-ref="HTTP_Request_configuration1" path="/query/clothes">
 		</http:request>
+			</when>
+			<otherwise>
+				<ee:transform doc:name="Transform Message" doc:id="b703d28b-27fc-4722-b3c9-0aaabc878f6a" >
+					<ee:message >
+						<ee:set-payload ><![CDATA[%dw 2.0
+output application/java
+---
+{
+	message: "O parameter nome precisa ser preenchido."	
+}]]></ee:set-payload>
+					</ee:message>
+				</ee:transform>
+			</otherwise>
+		</choice>
+	</sub-flow>
+	<flow name="get:\query\clothes:api-config">
+        <set-variable value="#[message.attributes.queryParams.name]" doc:name="Set Variable" doc:id="7e11e2fe-af57-418b-8d88-e36fa7757bf3" variableName="nome"/>
+		<flow-ref doc:name="Flow Reference" doc:id="74aa74a6-68bd-418a-bed1-99c37dce11c3" name="choiceTestSubFlow"/>
     </flow>
     <flow name="get:\status:api-config">
 		<logger level="INFO" doc:name="Logger" doc:id="5ea8c8b0-bff4-45f9-9a9c-1c226b1eb42d" />
