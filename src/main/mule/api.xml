@@ -174,7 +174,7 @@ output application/json
 				<ee:transform doc:name="Transform Message" doc:id="b703d28b-27fc-4722-b3c9-0aaabc878f6a" >
 					<ee:message >
 						<ee:set-payload ><![CDATA[%dw 2.0
-output application/java
+output application/json
 ---
 {
 	message: "O parameter nome precisa ser preenchido."	
