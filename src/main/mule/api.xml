@@ -17,10 +17,6 @@
             <http:default-header key="client_id" value="22424242" />
             <http:default-header key="client_secret" value="123124214" />
         </http:default-headers>
-        <http:default-query-params>
-            <http:query-param key="nome" value="#[message.attributes.queryParams.name]" />
-			<http:query-param key="nome2" value="#[message.attributes.queryParams.name2]" />
-        </http:default-query-params>
     </http:request-config>
     <http:request-config name="HTTP_Request_configuration2" doc:name="HTTP Request configuration" doc:id="b2e1084b-6402-46e6-8437-85fe67ee9b41">
         <http:request-connection host="academia-system-api.us-e1.cloudhub.io" />
@@ -166,8 +162,25 @@ output application/json
     </flow>
     <sub-flow name="choiceTestSubFlow" doc:id="4bd4da4c-263e-4f89-ae8e-ea7f35c3e6f5">
         <choice doc:name="Choice" doc:id="ea2dc616-7a9d-46fc-9f78-0e25d508f0e2">
-            <when expression='#[(vars.nome ++ vars.nome2) != ""]'>
-                <http:request method="GET" doc:name="Request Clothes" doc:id="febc46fd-8247-4271-b01b-2f1dd980ae6c" config-ref="HTTP_Request_configuration1" path="/query/clothes" />
+            <when expression='#[vars.nome != ""]'>
+                <http:request method="GET" doc:name="Request Clothes" doc:id="febc46fd-8247-4271-b01b-2f1dd980ae6c" config-ref="HTTP_Request_configuration1" path="/query/clothes" >
+					<http:query-params ><![CDATA[#[output application/java
+---
+{
+	"nome" : vars.nome,
+	"nome2" : vars.nome2
+}]]]></http:query-params>
+				</http:request>
+				<ee:transform doc:name="Transform Message" doc:id="fd4141fc-2487-40df-b3fb-82137c8654d4" >
+					<ee:message >
+						<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+	message: [vars.nome] ++ [vars.nome2]
+}]]></ee:set-payload>
+					</ee:message>
+				</ee:transform>
             </when>
             <otherwise>
                 <ee:transform doc:name="Transform Message" doc:id="b703d28b-27fc-4722-b3c9-0aaabc878f6a">
@@ -193,6 +206,20 @@ output application/json
 			</route>
 		</scatter-gather>
 		<flow-ref doc:name="Flow Reference" doc:id="74aa74a6-68bd-418a-bed1-99c37dce11c3" name="choiceTestSubFlow" />
+		<error-handler>
+			<on-error-continue enableNotifications="true" logException="true" doc:name="On Error Continue" doc:id="93da48e4-2d8a-4f89-a28b-fb4cf7a5ad85" type="ANY">
+				<ee:transform doc:name="Transform Message" doc:id="09dd77a0-7aec-4501-9609-f87f087202ce" >
+					<ee:message >
+						<ee:set-payload ><![CDATA[%dw 2.0
+output application/java
+---
+{
+	
+}]]></ee:set-payload>
+					</ee:message>
+				</ee:transform>
+			</on-error-continue>
+		</error-handler>
     </flow>
 	<flow name="get:\status:api-config">
         <http:request method="GET" doc:name="Request" doc:id="7669580a-696f-490f-adaa-3bd16756a1a6" config-ref="HTTP_Request_configuration" path="/status"/>
